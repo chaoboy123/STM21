@@ -1,6 +1,6 @@
 @echo off
 chcp 936 >nul
-title Keil 编译产物清理
+title Keil 编译产物清理（安全版 v2）
 setlocal
 cd /d "%~dp0"
 
@@ -21,23 +21,25 @@ if /i not "%CONF%"=="Y" echo 已取消。& pause & exit /b
 
 set N=0
 
-rem 只进入仓库根目录下的各工程文件夹，明确跳过 .git
+rem 逐个进入工程目录内部清理（pushd 方式，规避 for /r 变量路径枚举失效的 cmd 缺陷）
 for /d %%P in ("%CD%\*") do (
     if /i not "%%~nxP"==".git" (
-        for /d /r "%%P" %%D in (Objects Listings) do (
+        pushd "%%P"
+        for /d /r %%D in (Objects Listings) do (
             if exist "%%D" (
                 rd /s /q "%%D"
                 set /a N+=1
                 echo [目录] %%D
             )
         )
-        for /r "%%P" %%F in (*.o *.d *.crf *.dep *.lnp *.axf *.hex *.bin *.map *.lst *.htm *.iex *.uvguix.*) do (
+        for /r %%F in (*.o *.d *.crf *.dep *.lnp *.axf *.hex *.bin *.map *.lst *.htm *.iex *.uvguix.*) do (
             if exist "%%F" (
                 del /q "%%F"
                 set /a N+=1
                 echo [文件] %%F
             )
         )
+        popd
     )
 )
 
